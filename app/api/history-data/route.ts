@@ -64,7 +64,7 @@ async function getHistoryData(
 }
 
 
-// funcion para los datos del Año
+// funcion para los datos de year
 async function getYearHistoryData(userId: string, year: number) {
   const result = await prisma.yearHistory.groupBy({
     by: ["month"],

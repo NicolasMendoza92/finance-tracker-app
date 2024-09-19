@@ -26,7 +26,7 @@ function TransactionPage() {
             if (!from || !to) return;
             if (differenceInDays(to, from) > MAX_DATE_RANGE_DAYS) {
               toast.error(
-                `El rango de seleccion es muy grande. Máximo: ${MAX_DATE_RANGE_DAYS} días`
+                `El rango de seleccion es muy grande. Max: ${MAX_DATE_RANGE_DAYS} days`
               );
               return;
             }

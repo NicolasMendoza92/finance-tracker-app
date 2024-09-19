@@ -5,7 +5,7 @@ import * as ProgressPrimitive from "@radix-ui/react-progress";
 
 import { cn } from "@/lib/utils";
 
-// Añado la propiedad indicator, para que pueda cambiar de color
+// Agrego la propiedad indicator, para que pueda cambiar de color
 
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
@@ -22,7 +22,7 @@ const Progress = React.forwardRef<
     {...props}
   >
     <ProgressPrimitive.Indicator
-      // tambien añado el cn para cambiar el estilo
+      // tambien agrego el cn para cambiar el estilo
       className={cn(
         "h-full w-full flex-1 bg-primary transition-all",
         props.indicator

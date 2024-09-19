@@ -20,7 +20,7 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
     redirect("sign-in");
   }
 
-  // añadir paymethod y paymedium
+  // agregar paymethod y paymedium
   const { amount, category, date, description, type } = parsedBody.data;
 
   const categoryRow = await prisma.category.findFirst({

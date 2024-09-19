@@ -149,7 +149,7 @@ function TransactionTable({ from, to }: Props) {
       ).then((res) => res.json()),
   });
 
-  //   funcion para exportar archivo csv
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleExportCSV = (data: any[]) => {
     const csv = generateCsv(csvConfig)(data);
     download(csvConfig)(csv);

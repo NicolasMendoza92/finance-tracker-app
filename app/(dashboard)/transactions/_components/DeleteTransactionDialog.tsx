@@ -34,7 +34,7 @@ function DeleteTransactionDialog({open, setOpen, transactionId}: Props) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              ¿Estas seguro de eliminar el movimiento?
+              Estas seguro de eliminar el movimiento?
             </AlertDialogTitle>
             <AlertDialogDescription>
               Una vez eliminado no se puede recuperar

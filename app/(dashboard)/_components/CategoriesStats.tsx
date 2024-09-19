@@ -80,7 +80,7 @@ function CategoriesCard({
       <div className="flex items-center justify-between gap-2">
         {filteredData.length === 0 && (
           <div className="flex h-60 w-full flex-col items-center justify-center">
-            No hay información para el periodo seleccionado.
+            No hay datos para el periodo seleccionado.
             <p className="text-sm text-muted-foreground">
               Selecciona otro rango de fechas diferent{" "}
               {type === "income" ? "Ingresos" : "Gastos"}

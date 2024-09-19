@@ -31,7 +31,7 @@ async function page() {
           Empecemos por definir la moneda
         </h2>
         <h3 className="mt-2 text text-sm text-muted-foreground">
-          Puedes cambiar esta configuración cuando quieras.
+          Puedes cambiar el tipo de moneda cuando quieras.
         </h3>
       </div>
       <Separator />

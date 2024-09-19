@@ -50,7 +50,7 @@ function DeleteCategoryDialog({ category, trigger }: Props) {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            ¿Estas seguro de eliminar la categoria?
+            Estas seguro de eliminar la categoria?
           </AlertDialogTitle>
           <AlertDialogDescription>
             Una vez eliminada no se puede recuperar
