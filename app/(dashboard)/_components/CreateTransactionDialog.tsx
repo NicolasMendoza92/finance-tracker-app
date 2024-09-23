@@ -14,7 +14,7 @@ import {
   CreateTransactionSchema,
   CreateTransactionSchemaType,
 } from "@/schema/transactions";
-import { ReactNode, useCallback, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -41,6 +41,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateTransaction } from "../_actions/transactions";
 import { toast } from "sonner";
 import { DateToUTCDate } from "@/lib/helpers";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
   trigger: ReactNode | null;
@@ -55,6 +62,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
       date: new Date(),
     },
   });
+
   const [open, setOpen] = useState(false);
 
   const handleCateogryChange = useCallback(
@@ -63,6 +71,48 @@ function CreateTransactionDialog({ trigger, type }: Props) {
     },
     [form]
   );
+
+  // Calcula automaticamente el installmentAmount basado en el amount y el installmentCount
+  useEffect(() => {
+    const amount = form.watch("amount");
+    const installmentCount = form.watch("installmentCount");
+
+    if (installmentCount > 1 && amount > 0) {
+      form.setValue("installmentAmount", amount / installmentCount);
+    } else {
+      form.setValue("installmentAmount", amount);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.watch("amount"), form.watch("installmentCount")]);
+
+  const handleInstallmentAmountChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = parseFloat(e.target.value);
+    form.setValue("installmentAmount", value); // Permitir ajuste manual
+  };
+
+  // const handleInstallmentAmountChange = useCallback(
+  //   ( e: React.ChangeEvent<HTMLInputElement>) => {
+  //     console.log(e)
+  //     const amount = form.watch("amount");
+  //   const installmentCount = form.watch("installmentCount");
+  //   if (installmentCount > 1) {
+  //     setInstallmentAmount(amount / installmentCount);
+  //   } else {
+  //     setInstallmentAmount(amount);
+  //   }
+  //   },
+  //   [form]
+  // );
+
+  // El usuario puede cambiar manualmente el installmentAmount
+  // const handleInstallmentAmountChange = (
+  //   e: React.ChangeEvent<HTMLInputElement>
+  // ) => {
+  //   console.log(e)
+  //   setInstallmentAmount(parseFloat(e.target.value));
+  // };
 
   const queryClient = useQueryClient();
 
@@ -78,6 +128,9 @@ function CreateTransactionDialog({ trigger, type }: Props) {
         amount: 0,
         date: new Date(),
         category: undefined,
+        payMethod: "cash",
+        installmentCount: 1,
+        installmentAmount: 0,
       });
 
       queryClient.invalidateQueries({
@@ -88,15 +141,21 @@ function CreateTransactionDialog({ trigger, type }: Props) {
     },
   });
 
-  const onSubmit = useCallback((values: CreateTransactionSchemaType) => {
-    toast.loading("Creando movimiento...", {
-      id: "create-transaction",
-    });
-    mutate({
-      ...values,
-      date: DateToUTCDate(values.date),
-    });
-  }, [mutate]);
+  const onSubmit = useCallback(
+    (values: CreateTransactionSchemaType) => {
+      toast.loading("Creando movimiento...", {
+        id: "create-transaction",
+      });
+      mutate({
+        ...values,
+        date: DateToUTCDate(values.date),
+      });
+      console.log(values);
+    },
+    [mutate]
+  );
+
+  console.log(form.getValues())
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -104,7 +163,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Crear nuevo{" "}
+            Crear nuevo
             <span
               className={cn(
                 "m-1",
@@ -127,7 +186,6 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                     <Input defaultValue={""} {...field} />
                   </FormControl>
                   <FormDescription>
-                    {" "}
                     Descripcion de la transaccion (opcional)
                   </FormDescription>
                 </FormItem>
@@ -140,7 +198,14 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                 <FormItem>
                   <FormLabel> Monto</FormLabel>
                   <FormControl>
-                    <Input defaultValue={0} type="number" {...field} />
+                    <Input
+                      defaultValue={0}
+                      type="number"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                      }}
+                    />
                   </FormControl>
                   <FormDescription> Monto total (requerido)</FormDescription>
                 </FormItem>
@@ -152,19 +217,88 @@ function CreateTransactionDialog({ trigger, type }: Props) {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Categoria</FormLabel>
-                  <FormControl>
+                  <FormControl {...field}>
                     <CategoryPicker
                       type={type}
-                      onChange={handleCateogryChange}
+                      onChange={(e) => handleCateogryChange(e)}
                     />
                   </FormControl>
                   <FormDescription>
-                    {field.name}
                     Seleccione una categoria para la transaccion (requerido)
                   </FormDescription>
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="payMethod"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Metodo de Pago</FormLabel>
+                  <FormControl>
+                    <Select {...field}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Metodo de pago" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Efectivo</SelectItem>
+                        <SelectItem value="credit-card">Tarjeta</SelectItem>
+                        <SelectItem value="trasnfer">Trasnferencia</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormDescription>
+                    Seleccione un método de pago para la transacción (requerido)
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="installmentCount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel> Cuotas</FormLabel>
+                  <FormControl>
+                    <Input
+                      defaultValue={1}
+                      type="number"
+                      {...field}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value, 10);
+                        field.onChange(value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription> Cantidad de cuotasa</FormDescription>
+                </FormItem>
+              )}
+            />
+
+            {form.watch("installmentCount") > 0 && (
+              <FormField
+                control={form.control}
+                name="installmentAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Monto por Cuota</FormLabel>
+                    <FormControl>
+                      <Input
+                        defaultValue={0}
+                        type="number"
+                        {...field}
+                        onChange={handleInstallmentAmountChange}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Puede ajustar manualmente el monto por cuota
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="date"
@@ -195,8 +329,8 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                         mode="single"
                         selected={field.value}
                         onSelect={(value) => {
-                          if(!value) return;
-                          field.onChange(value)
+                          if (!value) return;
+                          field.onChange(value);
                         }}
                         initialFocus
                       />

@@ -77,6 +77,15 @@ export const columns: ColumnDef<TransactionHistoryRow>[] = [
     ),
   },
   {
+    accessorKey: "payMethod",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Metodo" />
+    ),
+    cell: ({ row }) => (
+      <div className="capitalize">{row.original.payMethod}</div>
+    ),
+  },
+  {
     accessorKey: "date",
     header: "Fecha",
     cell: ({ row }) => {

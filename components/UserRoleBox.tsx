@@ -18,45 +18,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Currencies, Currency } from "@/lib/currencies";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import SkeletonWrapper from "./SkeletonWrapper";
 import { UserSettings } from "@prisma/client";
-import { UpdateUserCurrency } from "@/app/wizard/_actions/userSettings";
+import {  UpdateUserRole } from "@/app/wizard/_actions/userSettings";
 import { toast } from "sonner";
+import { Role, Roles } from "@/lib/roles";
 
-// type Status = {
-//   value: string
-//   label: string
-// }
 
-// const statuses: Status[] = [
-//   {
-//     value: "backlog",
-//     label: "Backlog",
-//   },
-//   {
-//     value: "todo",
-//     label: "Todo",
-//   },
-//   {
-//     value: "in progress",
-//     label: "In Progress",
-//   },
-//   {
-//     value: "done",
-//     label: "Done",
-//   },
-//   {
-//     value: "canceled",
-//     label: "Canceled",
-//   },
-// ]
-
-export function CurrencyComboBox() {
+export function UserRoleBox() {
   const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [selectedOption, setSelectedOption] = React.useState<Currency | null>(
+  const [selectedOption, setSelectedOption] = React.useState<Role | null>(
     null
   );
 
@@ -69,27 +42,27 @@ export function CurrencyComboBox() {
   // Hacemos el useEffect para setear la opcion si es que ya la tiene seleccionada el usuario
   React.useEffect(() => {
     if (!userSettings.data) return;
-    const userCurrency = Currencies.find(
-      (currency) => currency.value === userSettings.data.currency
+    const userRole = Roles.find(
+      (role) => role.value === userSettings.data.role
     );
-    if (userCurrency) setSelectedOption(userCurrency);
+    if (userRole) setSelectedOption(userRole);
   }, [userSettings.data]);
 
   const mutation = useMutation({
-    mutationFn: UpdateUserCurrency,
+    mutationFn: UpdateUserRole,
     onSuccess: (data: UserSettings) => {
-      toast.success("Tipo de moneda configurado correctamente", {
-        id: "update-currency",
+      toast.success("Role de usuario configurado correctamente", {
+        id: "update-role",
       });
 
       setSelectedOption(
-        Currencies.find((c) => c.value === data.currency) || null
+        Roles.find((c) => c.value === data.role) || null
       );
     },
     onError: (e) => {
       console.error(e);
       toast.error("Algo salio mal :(", {
-        id: "update-currency",
+        id: "update-roley",
       });
     },
   });
@@ -97,16 +70,16 @@ export function CurrencyComboBox() {
   //  llamamos a la funcion mutation cuando el cliente cambia
   // esto evita probelmas de reenderizado u sea un loop
   const selectOption = React.useCallback(
-    (currency: Currency | null) => {
-      if (!currency) {
-        toast.error("Por favor seleccione una moneda");
+    (role: Role | null) => {
+      if (!role) {
+        toast.error("Por favor seleccione un role");
         return;
       }
-      toast.loading(" Configurando moneda...", {
-        id: "update-currency",
+      toast.loading(" Configurando role...", {
+        id: "update-role",
       });
 
-      mutation.mutate(currency.value);
+      mutation.mutate(role.value);
     },
     [mutation]
   );
@@ -124,7 +97,7 @@ export function CurrencyComboBox() {
               {selectedOption ? (
                 <>{selectedOption.label}</>
               ) : (
-                <>+ Selecciona tipo</>
+                <>+ Selecciona Role</>
               )}
             </Button>
           </PopoverTrigger>
@@ -167,7 +140,7 @@ function OptionList({
   setSelectedOption,
 }: {
   setOpen: (open: boolean) => void;
-  setSelectedOption: (option: Currency | null) => void;
+  setSelectedOption: (option: Role | null) => void;
 }) {
   return (
     <Command>
@@ -175,19 +148,19 @@ function OptionList({
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup>
-          {Currencies.map((currency: Currency) => (
+          {Roles.map((role: Role) => (
             <CommandItem
-              key={currency.value}
-              value={currency.value}
+              key={role.value}
+              value={role.value}
               onSelect={(value) => {
                 setSelectedOption(
-                  Currencies.find((priority) => priority.value === value) ||
+                  Roles.find((priority) => priority.value === value) ||
                     null
                 );
                 setOpen(false);
               }}
             >
-              {currency.label}
+              {role.label}
             </CommandItem>
           ))}
         </CommandGroup>

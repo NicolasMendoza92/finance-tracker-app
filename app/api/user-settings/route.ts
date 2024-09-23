@@ -20,6 +20,7 @@ export async function GET (){
             data:{
                 userId: user.id,
                 currency: "ARS",
+                role:"USER",
             }
         });
     }

@@ -20,8 +20,16 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
     redirect("sign-in");
   }
 
-  // agregar paymethod y paymedium
-  const { amount, category, date, description, type } = parsedBody.data;
+  const {
+    amount,
+    category,
+    date,
+    description,
+    type,
+    payMethod,
+    installmentCount,
+    installmentAmount,
+  } = parsedBody.data;
 
   const categoryRow = await prisma.category.findFirst({
     where: {
@@ -34,16 +42,71 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
     throw new Error("Categoria no encontrada");
   }
 
+  // Villereo y convierto a numero para ver si me sale 
+  // const installmentCountNumber = installmentCount ? parseInt(installmentCount, 10) : undefined;
+  const transactions =  []
+
+  if (installmentCount  > 0) {
+    for (let index = 0; index < installmentCount; index++) {
+      transactions.push(
+        prisma.transaction.create({
+          data:{
+            userId: user.id,
+            amount: installmentAmount || 0,
+            date: new Date(date.getFullYear(), date.getMonth() + index, 1), // Sumo el indice al mes
+            description: description || "",
+            type,
+            payMethod: payMethod || "",
+            category: categoryRow.name,
+            categoryIcon: categoryRow.icon,
+            installmentCount: installmentCount,
+            installmentNumber: index + 1, 
+          },
+        })
+      );
+    }
+  } else {
+    transactions.push(
+      prisma.transaction.create({
+        data:{
+          userId: user.id,
+          amount,
+          date,
+          description: description || "",
+          type,
+          payMethod: payMethod || "",
+          category: categoryRow.name,
+          categoryIcon: categoryRow.icon,
+          installmentCount: 1,
+        },
+      })
+    );
+  }
+
   await prisma.$transaction([
-    prisma.transaction.create({
-      data: {
+    ...transactions,
+    prisma.yearHistory.upsert({
+      where: {
+        month_year_userId: {
+          userId: user.id,
+          month: date.getUTCMonth(),
+          year: date.getUTCFullYear(),
+        },
+      },
+      create: {
         userId: user.id,
-        amount,
-        date,
-        description: description || "",
-        type,
-        category: categoryRow.name,
-        categoryIcon: categoryRow.icon,
+        month: date.getUTCMonth(),
+        year: date.getUTCFullYear(),
+        expense: type === "expense" ? amount : 0,
+        income: type === "income" ? amount : 0,
+      },
+      update: {
+        expense: {
+          increment: type === "expense" ? amount : 0,
+        },
+        income: {
+          increment: type === "income" ? amount : 0,
+        },
       },
     }),
 
@@ -74,102 +137,76 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
         },
       },
     }),
-
-    prisma.yearHistory.upsert({
-      where: {
-        month_year_userId: {
-          userId: user.id,
-          month: date.getUTCMonth(),
-          year: date.getUTCFullYear(),
-        },
-      },
-      create: {
-        userId: user.id,
-        month: date.getUTCMonth(),
-        year: date.getUTCFullYear(),
-        expense: type === "expense" ? amount : 0,
-        income: type === "income" ? amount : 0,
-      },
-      update: {
-        expense: {
-          increment: type === "expense" ? amount : 0,
-        },
-        income: {
-          increment: type === "income" ? amount : 0,
-        },
-      },
-    }),
   ]);
 }
 
-
-export async function DeleteTransaction(id:string){
+export async function DeleteTransaction(id: string) {
   const user = await currentUser();
   if (!user) {
     redirect("sign-in");
   }
 
   const transaction = await prisma.transaction.findUnique({
-    where:{
+    where: {
       userId: user.id,
       id,
-    }
+    },
   });
-  if( !transaction){
-    throw new Error("Bad requests")
+  if (!transaction) {
+    throw new Error("Bad requests");
   }
 
   await prisma.$transaction([
     prisma.transaction.delete({
-      where:{
+      where: {
         id,
-        userId: user.id
-      }
+        userId: user.id,
+      },
     }),
 
     prisma.monthHistory.update({
-      where:{
-        day_month_year_userId:{
+      where: {
+        day_month_year_userId: {
           userId: user.id,
           day: transaction.date.getUTCDate(),
           month: transaction.date.getUTCMonth(),
           year: transaction.date.getUTCFullYear(),
         },
       },
-      data:{
+      data: {
         ...(transaction.type === "expense" && {
           expense: {
             decrement: transaction.amount,
-          }
+          },
         }),
         ...(transaction.type === "income" && {
           income: {
             decrement: transaction.amount,
-          }
+          },
         }),
-      }
+      },
     }),
 
     prisma.yearHistory.update({
-      where:{
-        month_year_userId:{
+      where: {
+        month_year_userId: {
           userId: user.id,
           month: transaction.date.getUTCMonth(),
           year: transaction.date.getUTCFullYear(),
         },
       },
-      data:{
+      data: {
         ...(transaction.type === "expense" && {
           expense: {
             decrement: transaction.amount,
-          }
+          },
         }),
         ...(transaction.type === "income" && {
           income: {
             decrement: transaction.amount,
-          }
+          },
         }),
-      }
-    })
-  ])
+      },
+    }),
+  ]);
 }

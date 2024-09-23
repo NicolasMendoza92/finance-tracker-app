@@ -13,50 +13,61 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  COMPANY
+  USER
+  PYMES
+}
+
 model UserSettings {
-  userId String @id
+  userId   String   @id
   currency String
+  role     UserRole @default(USER)
 }
 
 model Category {
   createdAt DateTime @default(now())
-  name String
-  userId String
-  icon String
-  type String @default("income")
+  name      String
+  userId    String
+  icon      String
+  type      String   @default("income")
 
   @@unique([name, userId, type])
 }
 
 model Transaction {
-  id String @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-  amount Float
-  description String
-  date DateTime
-  userId String
-  type String @default("income")
-  category String
-  categoryIcon  String
+  id                String   @id @default(uuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now())
+  amount            Float
+  description       String
+  payMethod         String
+  date              DateTime
+  userId            String
+  type              String   @default("income")
+  category          String
+  categoryIcon      String
+  installmentCount  Int?
+  installmentNumber Int?
+  installmentAmount Float?
 }
 
 model MonthHistory {
-  userId String
-  day Int
-  month Int
-  year Int
-  income Float
+  userId  String
+  day     Int
+  month   Int
+  year    Int
+  income  Float
   expense Float
 
   @@id([day, month, year, userId])
 }
 
 model YearHistory {
-  userId String
-  month Int
-  year Int
-  income Float
+  userId  String
+  month   Int
+  year    Int
+  income  Float
   expense Float
 
   @@id([month, year, userId])

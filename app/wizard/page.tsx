@@ -1,6 +1,5 @@
 "use server";
 import { CurrencyComboBox } from "@/components/CurrencyComboBox";
-import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { UserRoleBox } from "@/components/UserRoleBox";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -39,21 +39,26 @@ async function page() {
         <CardHeader>
           <CardTitle>Moneda</CardTitle>
           <CardDescription>
-            {" "}
             Configura la moneda para tus transacciones.
           </CardDescription>
         </CardHeader>
         <CardContent>
             <CurrencyComboBox/>
         </CardContent>
+        <CardHeader>
+          <CardTitle>Role</CardTitle>
+          <CardDescription>
+            Configura la moneda para tus transacciones.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <UserRoleBox/>
+        </CardContent>
       </Card>
       <Separator />
       <Button className="w-full" asChild>
         <Link href={"/"}>Listo, vamos al tablero</Link>
       </Button>
-      <div className="mt-8">
-        <Logo />
-      </div>
     </div>
   );
 }
