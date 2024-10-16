@@ -16,6 +16,8 @@ import {
   ResponsiveContainer,
   XAxis,
   YAxis,
+  Area,
+  AreaChart,
 } from "recharts";
 import { cn } from "@/lib/utils";
 import CountUp from "react-countup";
@@ -26,6 +28,10 @@ function History({ userSettings }: { userSettings: UserSettings }) {
     month: new Date().getMonth(),
     year: new Date().getFullYear(),
   });
+
+  const [chartType, setChartType] = useState<"BarChart" | "AreaChart">(
+    "BarChart"
+  );
 
   const formatter = useMemo(() => {
     return GetFormatterForCurrency(userSettings.currency);
@@ -40,7 +46,8 @@ function History({ userSettings }: { userSettings: UserSettings }) {
       ).then((res) => res.json()),
   });
 
-  const dataAvailable = historyDataQuery.data && historyDataQuery.data.length > 0;
+  const dataAvailable =
+    historyDataQuery.data && historyDataQuery.data.length > 0;
 
   return (
     <div className="p-8 m-3">
@@ -70,6 +77,17 @@ function History({ userSettings }: { userSettings: UserSettings }) {
                 <div className="h-4 w-4 rounded-full bg-red-500"></div>
                 Gastos
               </Badge>
+              {/* Selector para el tipo de gráfico */}
+              <select
+                value={chartType}
+                onChange={(e) =>
+                  setChartType(e.target.value as "BarChart" | "AreaChart")
+                }
+                className="border bg-background rounded-md px-2 py-1 text-sm"
+              >
+                <option value="BarChart">Barra</option>
+                <option value="AreaChart">Area</option>
+              </select>
             </div>
           </CardTitle>
         </CardHeader>
@@ -77,81 +95,190 @@ function History({ userSettings }: { userSettings: UserSettings }) {
           <SkeletonWrapper isLoading={historyDataQuery.isFetching}>
             {dataAvailable && (
               <ResponsiveContainer width={"100%"} height={350}>
-                <BarChart barSize={15} barGap={5} height={350} barCategoryGap={5} data={historyDataQuery.data}>
-                  <defs>
-                    <linearGradient id="incomeBar" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset={"5%"}
-                        stopColor="#10b981"
-                        stopOpacity={"0.8"}
-                      />
-                      <stop
-                        offset={"95%"}
-                        stopColor="#10b981"
-                        stopOpacity={"0"}
-                      />
-                    </linearGradient>
-                    <linearGradient id="expenseBar" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset={"5%"}
-                        stopColor="#ef4444"
-                        stopOpacity={"0.8"}
-                      />
-                      <stop
-                        offset={"95%"}
-                        stopColor="#ef4444"
-                        stopOpacity={"0"}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="5 5"
-                    strokeOpacity={"0.2"}
-                    vertical={false}
-                  />
-                  <XAxis
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    padding={{ left: 5, right: 5 }}
-                    dataKey={(data) => {
-                      const { year, month, day } = data;
-                      const date = new Date(year, month, day || 1);
-                      if (timeframe === "year") {
+                {chartType === "BarChart" ? (
+                  <BarChart
+                    barSize={15}
+                    barGap={5}
+                    height={350}
+                    barCategoryGap={5}
+                    data={historyDataQuery.data}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="incomeBar"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset={"5%"}
+                          stopColor="#10b981"
+                          stopOpacity={"0.8"}
+                        />
+                        <stop
+                          offset={"95%"}
+                          stopColor="#10b981"
+                          stopOpacity={"0"}
+                        />
+                      </linearGradient>
+                      <linearGradient
+                        id="expenseBar"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset={"5%"}
+                          stopColor="#ef4444"
+                          stopOpacity={"0.8"}
+                        />
+                        <stop
+                          offset={"95%"}
+                          stopColor="#ef4444"
+                          stopOpacity={"0"}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="5 5"
+                      strokeOpacity={"0.2"}
+                      vertical={false}
+                    />
+                    <XAxis
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      padding={{ left: 5, right: 5 }}
+                      dataKey={(data) => {
+                        const { year, month, day } = data;
+                        const date = new Date(year, month, day || 1);
+                        if (timeframe === "year") {
+                          return date.toLocaleDateString("default", {
+                            month: "long",
+                          });
+                        }
                         return date.toLocaleDateString("default", {
-                          month: "long",
+                          day: "2-digit",
                         });
-                      }
-                      return date.toLocaleDateString("default", {
-                        day: "2-digit",
-                      });
-                    }}
-                  />
-                  <YAxis
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Bar
-                    dataKey={"income"}
-                    label="Ingresos"
-                    fill="url(#incomeBar)"
-                    radius={4}
-                    className="cursor-pointer"
-                  />
-                  <Bar
-                    dataKey={"expense"}
-                    label="Gastos"
-                    fill="url(#expenseBar)"
-                    radius={4}
-                    className="cursor-pointer"
-                  />
-                  <Tooltip cursor={{ opacity:0.1}} content={(props) => (
-                      <CustomTooltip formatter={formatter} {...props} />
-                    )}/>
-                </BarChart>
+                      }}
+                    />
+                    <YAxis
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Bar
+                      dataKey={"income"}
+                      label="Ingresos"
+                      fill="url(#incomeBar)"
+                      radius={4}
+                      className="cursor-pointer"
+                    />
+                    <Bar
+                      dataKey={"expense"}
+                      label="Gastos"
+                      fill="url(#expenseBar)"
+                      radius={4}
+                      className="cursor-pointer"
+                    />
+                    <Tooltip
+                      cursor={{ opacity: 0.1 }}
+                      content={(props) => (
+                        <CustomTooltip formatter={formatter} {...props} />
+                      )}
+                    />
+                  </BarChart>
+                ) : (
+                  <AreaChart data={historyDataQuery.data}>
+                    <defs>
+                      <linearGradient
+                        id="incomeArea"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#10b981"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#10b981"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                      <linearGradient
+                        id="expenseArea"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#ef4444"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#ef4444"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={"0.2"}/>
+                    <XAxis
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      padding={{ left: 5, right: 5 }}
+                      dataKey={(data) => {
+                        const { year, month, day } = data;
+                        const date = new Date(year, month, day || 1);
+                        if (timeframe === "year") {
+                          return date.toLocaleDateString("default", {
+                            month: "long",
+                          });
+                        }
+                        return date.toLocaleDateString("default", {
+                          day: "2-digit",
+                        });
+                      }}
+                    />
+                    <YAxis
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      content={<CustomTooltip formatter={formatter} />}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="income"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      fill="url(#incomeArea)"
+                      className="cursor-pointer drop-shadow-sm"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="expense"
+                      stroke="#ef4444"
+                      strokeWidth={2}
+                      fill="url(#expenseArea)"
+                      className="cursor-pointer drop-shadow-sm"
+                    />
+                  </AreaChart>
+                )}
               </ResponsiveContainer>
             )}
             {!dataAvailable && (
@@ -172,11 +299,11 @@ function History({ userSettings }: { userSettings: UserSettings }) {
 export default History;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CustomTooltip({ active, payload, formatter}:any) {
+function CustomTooltip({ active, payload, formatter }: any) {
   if (!active || !payload || payload.length === 0) return null;
 
   const data = payload[0].payload;
-  const {expense, income} = data
+  const { expense, income } = data;
 
   return (
     <div className="min-w-[300px] rounded border bg-background p-4">

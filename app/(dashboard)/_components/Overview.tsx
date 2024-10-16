@@ -8,6 +8,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import StatsCards from "./StatsCards";
 import CategoriesStats from "./CategoriesStats";
+import GraphStats from "./GraphStats";
+
 
 function Overview({ userSettings }: { userSettings: UserSettings }) {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
@@ -47,6 +49,12 @@ function Overview({ userSettings }: { userSettings: UserSettings }) {
         />
 
         <CategoriesStats
+          userSettings={userSettings}
+          from={dateRange.from}
+          to={dateRange.to}
+        />
+
+        <GraphStats
           userSettings={userSettings}
           from={dateRange.from}
           to={dateRange.to}

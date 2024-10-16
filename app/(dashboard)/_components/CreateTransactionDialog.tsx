@@ -40,7 +40,7 @@ import { AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateTransaction } from "../_actions/transactions";
 import { toast } from "sonner";
-import { DateToUTCDate } from "@/lib/helpers";
+
 
 interface Props {
   trigger: ReactNode | null;
@@ -94,7 +94,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
     });
     mutate({
       ...values,
-      date: DateToUTCDate(values.date),
+      date: values.date,
     });
   }, [mutate]);
 
