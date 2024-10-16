@@ -20,7 +20,10 @@ function DeleteTransactionDialog({open, setOpen, transactionId}: Props) {
           id: transactionId,
         });
         await queryClient.invalidateQueries({
-          queryKey: ["transactions"],
+          queryKey: ["transaction"],
+        });
+        await queryClient.refetchQueries({
+          queryKey: ["transaction"],
         });
       },
       onError: () => {

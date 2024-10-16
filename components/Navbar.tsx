@@ -112,7 +112,7 @@ function NavbarItem({ link, label, clickCallback }: { label: string; link: strin
         {label}
       </Link>
       {isActive && (
-        <div className="absolute -bottom-[2px] left-1/2 hidden h-[2px] w-[80%] -translate-x-1/2 bg-foreground rounded-xl bg- md:block" />
+        <div className="absolute -bottom-[2px] left-1/2 hidden h-[2px] w-[80%] -translate-x-1/2 bg-blue-500 rounded-xl bg- md:block" />
       )}
     </div>
   );
