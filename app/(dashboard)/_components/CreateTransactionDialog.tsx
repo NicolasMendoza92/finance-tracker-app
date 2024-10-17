@@ -41,7 +41,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateTransaction } from "../_actions/transactions";
 import { toast } from "sonner";
 
-
 interface Props {
   trigger: ReactNode | null;
   type: TransactionType;
@@ -88,20 +87,23 @@ function CreateTransactionDialog({ trigger, type }: Props) {
     },
   });
 
-  const onSubmit = useCallback((values: CreateTransactionSchemaType) => {
-    toast.loading("Creando movimiento...", {
-      id: "create-transaction",
-    });
-    mutate({
-      ...values,
-      date: values.date,
-    });
-  }, [mutate]);
+  const onSubmit = useCallback(
+    (values: CreateTransactionSchemaType) => {
+      toast.loading("Creando movimiento...", {
+        id: "create-transaction",
+      });
+      mutate({
+        ...values,
+        date: values.date,
+      });
+    },
+    [mutate]
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="overflow-y-auto max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>
             Crear nuevo{" "}
@@ -119,17 +121,50 @@ function CreateTransactionDialog({ trigger, type }: Props) {
           <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
-              name="description"
+              name="date"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel> Descripcion</FormLabel>
-                  <FormControl>
-                    <Input defaultValue={""} {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    {" "}
-                    Descripcion de la transaccion (opcional)
-                  </FormDescription>
+                <FormItem className="flex flex-col">
+                  <FormLabel>Fecha</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-[200px] pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Elija una fecha</span>
+                          )}
+                          <CalendarIcon className="opacity-50 ml-auto h-4 w-4" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="start"
+                      className="w-auto p-0 z-[9999]"
+                      side="bottom"
+                      sideOffset={4}
+                      avoidCollisions={true}
+                      style={{ maxHeight: "400px", overflowY: "auto" }}
+                    >
+                      <Calendar
+                        className="z-50"
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(value) => {
+                          if (!value) return;
+                          field.onChange(value);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>Seleccione una fecha</FormDescription>
                 </FormItem>
               )}
             />
@@ -167,42 +202,17 @@ function CreateTransactionDialog({ trigger, type }: Props) {
             />
             <FormField
               control={form.control}
-              name="date"
+              name="description"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Fecha</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[200px] pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Elija una fecha</span>
-                          )}
-                          <CalendarIcon className="opacity-50 ml-auto h-4 w-4" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(value) => {
-                          if(!value) return;
-                          field.onChange(value)
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>Seleccione una fecha</FormDescription>
+                <FormItem>
+                  <FormLabel> Descripcion</FormLabel>
+                  <FormControl>
+                    <Input defaultValue={""} {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    {" "}
+                    Descripcion de la transaccion (opcional)
+                  </FormDescription>
                 </FormItem>
               )}
             />
@@ -220,7 +230,11 @@ function CreateTransactionDialog({ trigger, type }: Props) {
               Cancelar
             </Button>
           </DialogClose>
-          <Button onClick={form.handleSubmit(onSubmit)} disabled={isPending}>
+          <Button
+            className="mb-2"
+            onClick={form.handleSubmit(onSubmit)}
+            disabled={isPending}
+          >
             {!isPending && "Crear"}
             {isPending && <Loader2 className="animate-spin" />}
           </Button>
