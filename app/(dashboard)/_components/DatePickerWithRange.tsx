@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {  format, subDays } from "date-fns";
+import {  format, startOfMonth } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
@@ -29,7 +29,7 @@ export function DatePickerWithRange({
 }: DatePickerWithRangeProps) {
 
   const [date, setDate] = React.useState<DateRange | undefined>({
-    from: subDays(new Date(), 15),
+    from: startOfMonth(new Date()),
     to: new Date(),
   });
 

@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import React from "react";
-import CreateTransactionDialog from "./_components/CreateTransactionDialog";
 import Overview from "./_components/Overview";
 import History from "./_components/History";
+import Link from "next/link";
 
 async function page() {
   const user = await currentUser();
@@ -28,28 +28,22 @@ async function page() {
         <div className="flex flex-wrap items-center justify-between gap-6 p-8">
           <p className="text-3xl font-bold"> Hola, {user.firstName}! </p>
           <div className="flex items-center gap-3">
-            <CreateTransactionDialog
-              trigger={
-                <Button
-                  variant={"outline"}
-                  className=" bg-emerald-500 text-white hover:bg-emerald-400 hover:text-white"
-                >
-                  Nuevo Ingreso
-                </Button>
-              }
-              type="income"
-            />
-            <CreateTransactionDialog
-              trigger={
-                <Button
-                  variant={"outline"}
-                  className=" bg-rose-500 text-white hover:bg-rose-400 hover:text-white"
-                >
-                  Nuevo Gasto
-                </Button>
-              }
-              type="expense"
-            />
+          <Link href="/newIncome" passHref>
+              <Button
+                variant={"outline"}
+                className="bg-emerald-500 text-white hover:bg-emerald-400 hover:text-white"
+              >
+                Nuevo Ingreso
+              </Button>
+            </Link>
+            <Link href="/newExpense" passHref>
+              <Button
+                variant={"outline"}
+                className="bg-rose-500 text-white hover:bg-rose-400 hover:text-white"
+              >
+                Nuevo Gasto
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

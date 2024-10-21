@@ -23,6 +23,9 @@ async function page() {
   }
   return (
     <div className="flex max-w-2xl flex-col items-center justify-between gap-4 m-auto">
+      <div className="mt-8">
+        <Logo />
+      </div>
       <div>
         <h1 className="text-center text-3xl">
           Bienvenido, <span className="ml-2 font-bold">{user.firstName}!</span>
@@ -44,16 +47,13 @@ async function page() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <CurrencyComboBox/>
+          <CurrencyComboBox />
         </CardContent>
       </Card>
       <Separator />
       <Button className="w-full" asChild>
         <Link href={"/"}>Listo, vamos al tablero</Link>
       </Button>
-      <div className="mt-8">
-        <Logo />
-      </div>
     </div>
   );
 }
