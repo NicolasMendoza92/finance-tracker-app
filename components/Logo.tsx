@@ -26,7 +26,7 @@ export function LogoMobile() {
 export function LogoAuth() {
   return (
     <a href='/' className='flex flex-col items-center gap-2'>
-      <Image width={300} height={300} alt='logo' src={"/LOGO_SM_ROJO.png.png"}/>
+      <Image width={300} height={300} alt='logo' src={"/LOGO_SM_ROJO.png"}/>
         <p className='bg-blue-500 bg-clip-text text-3xl font-bold leading-tight tracking-tighter text-transparent'>
         Flujo de finanzas 
         </p>
