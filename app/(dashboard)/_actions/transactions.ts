@@ -21,7 +21,7 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
   }
 
   // agregar paymethod y paymedium
-  const { amount, category, date, description, type } = parsedBody.data;
+  const { amount, category, date, description, type, account } = parsedBody.data;
 
   const categoryRow = await prisma.category.findFirst({
     where: {
@@ -44,6 +44,7 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
         type,
         category: categoryRow.name,
         categoryIcon: categoryRow.icon,
+        account, 
       },
     }),
 

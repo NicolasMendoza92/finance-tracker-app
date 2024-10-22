@@ -67,6 +67,15 @@ export const columns: ColumnDef<TransactionHistoryRow>[] = [
     ),
   },
   {
+    accessorKey: "account",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Responsable" />
+    ),
+    cell: ({ row }) => (
+      <div className="capitalize">{row.original.account}</div>
+    ),
+  },
+  {
     accessorKey: "description",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Descripcion" />
@@ -206,6 +215,17 @@ function TransactionTable({ from, to }: Props) {
               ]}
             />
           )}
+          {table.getColumn("account") && (
+            <DataTableFacetedFilter
+              title="Responsable"
+              column={table.getColumn("account")}
+              options={[
+                { label: "Jorge", value: "Jorge" },
+                { label: "Dante", value: "Dante" },
+                { label: "Juanito", value: "Juanito" },
+              ]}
+            />
+          )}
         </div>
         <div className="flex flez-wrap gap-2">
           <Button
@@ -215,6 +235,7 @@ function TransactionTable({ from, to }: Props) {
             onClick={() => {
               const data = table.getFilteredRowModel().rows.map((row) => ({
                 category: row.original.category,
+                account: row.original.account,
                 description: row.original.description,
                 type: row.original.type,
                 amount: row.original.amount,

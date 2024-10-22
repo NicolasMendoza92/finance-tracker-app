@@ -17,6 +17,13 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input";
 import CategoryPicker from "./CategoryPicker";
 import {
@@ -75,6 +82,7 @@ function CreateTransactionForm({ type }: Props) {
         amount: 0,
         date: new Date(),
         category: undefined,
+        account: undefined,
       });
 
       queryClient.invalidateQueries({
@@ -201,6 +209,31 @@ function CreateTransactionForm({ type }: Props) {
                   </FormItem>
                 )}
               />
+               <FormField
+          control={form.control}
+          name="account"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Responsable</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selccione un responsable del gasto" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Dante">Dante</SelectItem>
+                  <SelectItem value="Jorge">Jorge</SelectItem>
+                  <SelectItem value="Juanito">Juanito</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+              {field.name}
+              Seleccione responsable para la transaccion
+              </FormDescription>
+            </FormItem>
+          )}
+        />
               <FormField
                 control={form.control}
                 name="description"
