@@ -1,11 +1,11 @@
 
-import Image from 'next/image'
+import { Wallet } from 'lucide-react'
 import React from 'react'
 
 function Logo() {
   return (
     <a href='/' className='flex items-center gap-2'>
-        <Image width={50} height={50} alt='logo' src={"/LOGO_SM_ROJO.png"}/>
+        <Wallet/>
         <p className='bg-blue-500 bg-clip-text text-3xl font-bold leading-tight tracking-tighter text-transparent'>
             Flujo de finanzas 
         </p>
@@ -26,7 +26,7 @@ export function LogoMobile() {
 export function LogoAuth() {
   return (
     <a href='/' className='flex flex-col items-center gap-2'>
-      <Image width={300} height={300} alt='logo' src={"/LOGO_SM_ROJO.png"}/>
+      <Wallet/>
         <p className='bg-blue-500 bg-clip-text text-3xl font-bold leading-tight tracking-tighter text-transparent'>
         Flujo de finanzas 
         </p>

@@ -1,5 +1,4 @@
-import { LogoAuth } from "@/components/Logo";
-import Image from "next/image";
+import Logo, { LogoAuth } from "@/components/Logo";
 import React, { ReactNode } from "react";
 
 function layout({ children }: { children: ReactNode }) {
@@ -8,8 +7,7 @@ function layout({ children }: { children: ReactNode }) {
 
     {/* Left side (children) */}
     <div className="flex-1 flex-col flex items-center justify-center">
-    <Image width={50} height={50} alt='logo' className="md:hidden" src={"/logo-entiende-tus-finanzas.png"}/>
-    <p className="bg-blue-500 bg-clip-text text-3xl font-bold leading-tight tracking-tighter text-transparent md:hidden">Entiende tus Finanzas</p>
+    <Logo/>
       {children}
     </div>
   
