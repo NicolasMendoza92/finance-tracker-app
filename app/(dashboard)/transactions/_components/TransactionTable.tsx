@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import SkeletonWrapper from "@/components/SkeletonWrapper";
 import { DataTableColumnHeader } from "@/components/datatable/ColumnHeader";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,7 @@ import { DataTableFacetedFilter } from "@/components/datatable/FacetedFilter";
 import { DataTableViewOptions } from "@/components/datatable/ColumnToggle";
 import { Button } from "@/components/ui/button";
 import { download, generateCsv, mkConfig } from "export-to-csv";
-import { DownloadIcon, MoreHorizontal, TrashIcon } from "lucide-react";
+import { DownloadIcon, MoreHorizontal, TrashIcon, Upload } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +39,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import DeleteTransactionDialog from "./DeleteTransactionDialog";
+import { handleImportXlsx } from "@/lib/helpers";
+import { WideDialogTable } from "./WideDialogTable";
 
 interface Props {
   from: Date;
@@ -71,9 +73,7 @@ export const columns: ColumnDef<TransactionHistoryRow>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Responsable" />
     ),
-    cell: ({ row }) => (
-      <div className="capitalize">{row.original.account}</div>
-    ),
+    cell: ({ row }) => <div className="capitalize">{row.original.account}</div>,
   },
   {
     accessorKey: "description",
@@ -146,16 +146,21 @@ const csvConfig = mkConfig({
 function TransactionTable({ from, to }: Props) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [transactions, setTransactions] = useState<TransactionHistoryRow[]>(
+    []
+  );
+  const [open, setOpen] = useState(false);
 
   const history = useQuery<GetTransactionHistoryResponseType>({
     queryKey: ["transaction", "history", from, to],
     queryFn: () =>
-      fetch(
-        `/api/transactions-history?from=${from}&to=${to}`
-      ).then((res) => res.json()),
+      fetch(`/api/transactions-history?from=${from}&to=${to}`).then((res) =>
+        res.json()
+      ),
   });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleExportCSV = (data: any[]) => {
     const csv = generateCsv(csvConfig)(data);
     download(csvConfig)(csv);
@@ -247,6 +252,26 @@ function TransactionTable({ from, to }: Props) {
           >
             <DownloadIcon className="mr-2 h-4 w-4" /> Exportar CSV
           </Button>
+          <Button
+           variant={"outline"}
+           size={"sm"}
+           className="ml-auto h-8 lg:flex"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Importar Excel
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={async (e) => {
+              const handler = await handleImportXlsx(e);
+              setTransactions(handler);
+              setOpen(true);
+            }}
+            accept=".xlsx"
+            style={{ display: "none" }}
+          />
           <DataTableViewOptions table={table} />
         </div>
       </div>
@@ -320,6 +345,12 @@ function TransactionTable({ from, to }: Props) {
           </Button>
         </div>
       </SkeletonWrapper>
+
+      <WideDialogTable
+        transactions={transactions}
+        open={open}
+        onOpenChange={setOpen}
+      />
     </div>
   );
 }

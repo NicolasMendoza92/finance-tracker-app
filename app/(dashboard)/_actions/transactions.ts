@@ -174,3 +174,133 @@ export async function DeleteTransaction(id:string){
     })
   ])
 }
+
+type BulkTransactionType = {
+  formattedAmount: string;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  amount: number;
+  description: string;
+  date: Date;
+  userId: string;
+  type: string;
+  category: string;
+  categoryIcon: string;
+  account: string | null;
+};
+
+
+// CREATE BULK TRANSACTIONS
+export async function createBulkTransactions(transactions: BulkTransactionType[]) {
+  const user = await currentUser();
+  if (!user) {
+    redirect("/sign-in");
+  }
+
+  try {
+    await prisma.$transaction(async (prisma) => {
+      // Prepare bulk transaction data
+      const transactionData = transactions.map(t => ({
+        userId: user.id,
+        amount: t.amount,
+        date: t.date,
+        description: t.description || "",
+        type: t.type,
+        category: t.category,
+        categoryIcon: t.categoryIcon,
+        account: t.account,
+      }));
+
+      // Bulk insert transactions
+      await prisma.transaction.createMany({
+        data: transactionData,
+      });
+
+      // Aggregate month history updates
+      const monthUpdates = transactions.reduce((acc, t) => {
+        const key = `${t.date.getUTCDate()}-${t.date.getUTCMonth()}-${t.date.getUTCFullYear()}`;
+        if (!acc[key]) {
+          acc[key] = { income: 0, expense: 0 };
+        }
+        if (t.type === "income") {
+          acc[key].income += t.amount;
+        } else {
+          acc[key].expense += t.amount;
+        }
+        return acc;
+      }, {} as Record<string, { income: number; expense: number }>);
+
+      // Apply month history updates
+      for (const [key, value] of Object.entries(monthUpdates)) {
+        const [day, month, year] = key.split('-').map(Number);
+        await prisma.monthHistory.upsert({
+          where: {
+            day_month_year_userId: {
+              userId: user.id,
+              day,
+              month,
+              year,
+            },
+          },
+          create: {
+            userId: user.id,
+            day,
+            month,
+            year,
+            income: value.income,
+            expense: value.expense,
+          },
+          update: {
+            income: { increment: value.income },
+            expense: { increment: value.expense },
+          },
+        });
+      }
+
+      // Aggregate year history updates
+      const yearUpdates = transactions.reduce((acc, t) => {
+        const key = `${t.date.getUTCMonth()}-${t.date.getUTCFullYear()}`;
+        if (!acc[key]) {
+          acc[key] = { income: 0, expense: 0 };
+        }
+        if (t.type === "income") {
+          acc[key].income += t.amount;
+        } else {
+          acc[key].expense += t.amount;
+        }
+        return acc;
+      }, {} as Record<string, { income: number; expense: number }>);
+
+      // Apply year history updates
+      for (const [key, value] of Object.entries(yearUpdates)) {
+        const [month, year] = key.split('-').map(Number);
+        await prisma.yearHistory.upsert({
+          where: {
+            month_year_userId: {
+              userId: user.id,
+              month,
+              year,
+            },
+          },
+          create: {
+            userId: user.id,
+            month,
+            year,
+            income: value.income,
+            expense: value.expense,
+          },
+          update: {
+            income: { increment: value.income },
+            expense: { increment: value.expense },
+          },
+        });
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in createBulkTransactions:", error);
+    return { error: "Failed to create bulk transactions" };
+  }
+}

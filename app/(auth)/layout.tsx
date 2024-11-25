@@ -1,4 +1,3 @@
-import Logo, { LogoAuth } from "@/components/Logo";
 import React, { ReactNode } from "react";
 
 function layout({ children }: { children: ReactNode }) {
@@ -7,14 +6,13 @@ function layout({ children }: { children: ReactNode }) {
 
     {/* Left side (children) */}
     <div className="flex-1 flex-col flex items-center justify-center">
-    <Logo/>
       {children}
     </div>
   
     {/* Right side (logo) - hidden on small screens */}
-    <div className="hidden md:flex flex-1 bg-blue-400 items-center justify-center">
+    {/* <div className="hidden md:flex flex-1 bg-blue-400 items-center justify-center">
       <LogoAuth />
-    </div>
+    </div> */}
   </div>
   );
 }

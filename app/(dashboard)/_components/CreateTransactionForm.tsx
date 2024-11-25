@@ -88,7 +88,7 @@ function CreateTransactionForm({ type }: Props) {
       queryClient.invalidateQueries({
         queryKey: ["overview"],
       });
-      router.push("/"); // Ajusta la ruta según tu aplicación
+      form.reset();
     },
     onError: () => {
       toast.error("Failed to create transaction");

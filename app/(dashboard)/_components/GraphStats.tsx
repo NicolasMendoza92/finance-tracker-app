@@ -15,11 +15,13 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
+  // RadarChart,
+  // PolarGrid,
+  // PolarAngleAxis,
+  // PolarRadiusAxis,
+  // Radar,
+  RadialBarChart,
+  RadialBar,
 } from "recharts";
 
 interface Props {
@@ -136,7 +138,9 @@ function IncomeChart({
                   labelStyle={{ color: "blue" }} 
                   itemStyle={{ color: "#03a73dee" }}
                 />
-              <Legend layout="vertical" align="left" verticalAlign="middle" />
+              <Legend layout="horizontal"
+                  align="center"
+                  verticalAlign="bottom" />
             </PieChart>
           </ResponsiveContainer>
         )}
@@ -198,16 +202,27 @@ function ExpensesCharts({
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
     return (
+      <g>
+        <rect
+        x={x - 20} // Ajusta el ancho del rectángulo
+        y={y - 10} // Ajusta la altura del rectángulo
+        width={40} // Ancho del rectángulo
+        height={20} // Altura del rectángulo
+        fill="white"
+        rx={5} // Bordes redondeados (opcional)
+        ry={5}
+      />
       <text
         x={x}
         y={y}
-        fill="white"
-        textAnchor={x > cx ? "start" : "end"}
+        fill="black"
+        textAnchor="middle"
         dominantBaseline="central"
       >
         {/* Muestra el porcentaje como etiqueta */}
         {`${(percent * 100).toFixed(0)}%`}
       </text>
+      </g>
     );
   };
 
@@ -233,7 +248,7 @@ function ExpensesCharts({
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  outerRadius={80}
+                  outerRadius={100}
                   paddingAngle={1}
                   dataKey="value"
                   label={renderCustomizedLabel}
@@ -266,6 +281,53 @@ function ExpensesCharts({
       </Card>
 
       <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-muted-foreground">
+            Gastos - Gráfico Radial
+          </CardTitle>
+        </CardHeader>
+        <div className="flex items-center justify-between gap-2">
+          {limitedChartData.length === 0 && (
+            <div className="flex h-60 w-full flex-col items-center justify-center">
+              No hay datos de gastos para el periodo seleccionado.
+            </div>
+          )}
+
+          {limitedChartData.length > 0 && (
+            <ResponsiveContainer width="100%" height={300}>
+              <RadialBarChart
+                innerRadius="20%"
+                outerRadius="100%"
+                barSize={15}
+                data={limitedChartData.map((item, index) => ({
+                  ...item,
+                  fill: COLORES[index % COLORES.length],
+                }))}
+              >
+                <RadialBar
+                  background
+                  dataKey="value"
+                />
+                <Tooltip
+                  formatter={(value) => formatter.format(Number(value))}
+                  contentStyle={{
+                    borderRadius: "0.375rem",
+                    backgroundColor: "background",
+                  }}
+                />
+                <Legend
+                  iconSize={10}
+                  layout="horizontal"
+                  verticalAlign="bottom"
+                  wrapperStyle={{ right: 0 }}
+                />
+              </RadialBarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </Card>
+
+      {/* <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-muted-foreground">
             Gastos - Gráfico Radar
@@ -307,7 +369,7 @@ function ExpensesCharts({
             </ResponsiveContainer>
           )}
         </div>
-      </Card>
+      </Card> */}
     </div>
   );
 }
