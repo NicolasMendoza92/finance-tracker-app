@@ -19,6 +19,7 @@ model UserSettings {
 }
 
 model Category {
+  id String @id @default(uuid())
   createdAt DateTime @default(now())
   name String
   userId String

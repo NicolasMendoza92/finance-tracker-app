@@ -72,7 +72,7 @@ const mapToTransactionWithRelations = (
       typeof item.amount === "number"
         ? item.amount.toLocaleString("es-ES", {
             style: "currency",
-            currency: "EUR",
+            currency: "ARS",
           })
         : item["Formatted Amount"] || "0",
     id: item.id || item["ID"] || crypto.randomUUID(),

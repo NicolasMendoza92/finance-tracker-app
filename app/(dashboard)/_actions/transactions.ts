@@ -200,7 +200,34 @@ export async function createBulkTransactions(transactions: BulkTransactionType[]
 
   try {
     await prisma.$transaction(async (prisma) => {
-      // Prepare bulk transaction data
+      // Obtener todas las categorías del usuario actual
+      const existingCategories = await prisma.category.findMany({
+        where: { userId: user.id },
+      });
+
+      const existingCategoryNames = new Set(existingCategories.map(c => c.name));
+
+      // Crear las categorías que no existan
+      const newCategories = transactions
+        .map(t => ({ name: t.category, icon: t.categoryIcon, type: t.type }))
+        .filter(cat => !existingCategoryNames.has(cat.name)); // Solo categorías nuevas
+
+      if (newCategories.length > 0) {
+        const uniqueNewCategories = Array.from(
+          new Map(newCategories.map(cat => [cat.name, cat])).values()
+        ); // Elimina duplicados
+
+        await prisma.category.createMany({
+          data: uniqueNewCategories.map(cat => ({
+            userId: user.id,
+            name: cat.name,
+            icon: cat.icon,
+            type: cat.type,
+          })),
+        });
+      }
+
+      // Preparar datos de transacciones
       const transactionData = transactions.map(t => ({
         userId: user.id,
         amount: t.amount,
@@ -212,12 +239,12 @@ export async function createBulkTransactions(transactions: BulkTransactionType[]
         account: t.account,
       }));
 
-      // Bulk insert transactions
+      // Insertar transacciones
       await prisma.transaction.createMany({
         data: transactionData,
       });
 
-      // Aggregate month history updates
+      // Actualizar MonthHistory
       const monthUpdates = transactions.reduce((acc, t) => {
         const key = `${t.date.getUTCDate()}-${t.date.getUTCMonth()}-${t.date.getUTCFullYear()}`;
         if (!acc[key]) {
@@ -231,7 +258,6 @@ export async function createBulkTransactions(transactions: BulkTransactionType[]
         return acc;
       }, {} as Record<string, { income: number; expense: number }>);
 
-      // Apply month history updates
       for (const [key, value] of Object.entries(monthUpdates)) {
         const [day, month, year] = key.split('-').map(Number);
         await prisma.monthHistory.upsert({
@@ -258,7 +284,7 @@ export async function createBulkTransactions(transactions: BulkTransactionType[]
         });
       }
 
-      // Aggregate year history updates
+      // Actualizar YearHistory
       const yearUpdates = transactions.reduce((acc, t) => {
         const key = `${t.date.getUTCMonth()}-${t.date.getUTCFullYear()}`;
         if (!acc[key]) {
@@ -272,7 +298,6 @@ export async function createBulkTransactions(transactions: BulkTransactionType[]
         return acc;
       }, {} as Record<string, { income: number; expense: number }>);
 
-      // Apply year history updates
       for (const [key, value] of Object.entries(yearUpdates)) {
         const [month, year] = key.split('-').map(Number);
         await prisma.yearHistory.upsert({
@@ -304,3 +329,115 @@ export async function createBulkTransactions(transactions: BulkTransactionType[]
     return { error: "Failed to create bulk transactions" };
   }
 }
+// export async function createBulkTransactions(transactions: BulkTransactionType[]) {
+//   const user = await currentUser();
+//   if (!user) {
+//     redirect("/sign-in");
+//   }
+
+//   try {
+//     await prisma.$transaction(async (prisma) => {
+//       // Prepare bulk transaction data
+//       const transactionData = transactions.map(t => ({
+//         userId: user.id,
+//         amount: t.amount,
+//         date: t.date,
+//         description: t.description || "",
+//         type: t.type,
+//         category: t.category,
+//         categoryIcon: t.categoryIcon,
+//         account: t.account,
+//       }));
+
+//       // Bulk insert transactions
+//       await prisma.transaction.createMany({
+//         data: transactionData,
+//       });
+
+//       // Aggregate month history updates
+//       const monthUpdates = transactions.reduce((acc, t) => {
+//         const key = `${t.date.getUTCDate()}-${t.date.getUTCMonth()}-${t.date.getUTCFullYear()}`;
+//         if (!acc[key]) {
+//           acc[key] = { income: 0, expense: 0 };
+//         }
+//         if (t.type === "income") {
+//           acc[key].income += t.amount;
+//         } else {
+//           acc[key].expense += t.amount;
+//         }
+//         return acc;
+//       }, {} as Record<string, { income: number; expense: number }>);
+
+//       // Apply month history updates
+//       for (const [key, value] of Object.entries(monthUpdates)) {
+//         const [day, month, year] = key.split('-').map(Number);
+//         await prisma.monthHistory.upsert({
+//           where: {
+//             day_month_year_userId: {
+//               userId: user.id,
+//               day,
+//               month,
+//               year,
+//             },
+//           },
+//           create: {
+//             userId: user.id,
+//             day,
+//             month,
+//             year,
+//             income: value.income,
+//             expense: value.expense,
+//           },
+//           update: {
+//             income: { increment: value.income },
+//             expense: { increment: value.expense },
+//           },
+//         });
+//       }
+
+//       // Aggregate year history updates
+//       const yearUpdates = transactions.reduce((acc, t) => {
+//         const key = `${t.date.getUTCMonth()}-${t.date.getUTCFullYear()}`;
+//         if (!acc[key]) {
+//           acc[key] = { income: 0, expense: 0 };
+//         }
+//         if (t.type === "income") {
+//           acc[key].income += t.amount;
+//         } else {
+//           acc[key].expense += t.amount;
+//         }
+//         return acc;
+//       }, {} as Record<string, { income: number; expense: number }>);
+
+//       // Apply year history updates
+//       for (const [key, value] of Object.entries(yearUpdates)) {
+//         const [month, year] = key.split('-').map(Number);
+//         await prisma.yearHistory.upsert({
+//           where: {
+//             month_year_userId: {
+//               userId: user.id,
+//               month,
+//               year,
+//             },
+//           },
+//           create: {
+//             userId: user.id,
+//             month,
+//             year,
+//             income: value.income,
+//             expense: value.expense,
+//           },
+//           update: {
+//             income: { increment: value.income },
+//             expense: { increment: value.expense },
+//           },
+//         });
+//       }
+//     });
+
+//     return { success: true };
+//   } catch (error) {
+//     console.error("Error in createBulkTransactions:", error);
+//     return { error: "Failed to create bulk transactions" };
+//   }
+// }
