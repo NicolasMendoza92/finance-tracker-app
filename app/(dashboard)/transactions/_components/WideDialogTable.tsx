@@ -28,6 +28,7 @@ export const WideDialogTable = ({
   open,
   onOpenChange,
 }: DialogProps) => {
+  console.log(transactions)
   const [isPending, startTransition] = useTransition();
 
   const onSubmit = async () => {
@@ -76,6 +77,7 @@ export const WideDialogTable = ({
                     <th>Amount</th>
                     <th>Type</th>
                     <th>Category</th>
+                    <th>Account</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -83,9 +85,10 @@ export const WideDialogTable = ({
                     <tr key={transaction.id}>
                       <td>{transaction.date.toLocaleDateString()}</td>
                       <td>{transaction.description}</td>
-                      <td>{transaction.formattedAmount}</td>
+                      <td>{transaction.amount}</td>
                       <td>{transaction.type}</td>
                       <td>{transaction.category}</td>
+                      <td>{transaction.account}</td>
                     </tr>
                   ))}
                 </tbody>
