@@ -1,5 +1,6 @@
 import { Currencies } from "./currencies";
 import * as XLSX from "xlsx";
+import { TransactionType } from "./types";
 
 export function DateToUTCDate(date: Date) {
   return new Date(
@@ -124,3 +125,7 @@ export const handleImportXlsx = (
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+export function isTransactionType(value: string): value is TransactionType {
+  return value === "income" || value === "expense";
+}

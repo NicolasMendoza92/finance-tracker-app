@@ -103,6 +103,121 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
   ]);
 }
 
+// FUNCION PARA EDITAR TRASNACCION 
+export async function EditTransaction(
+  form: CreateTransactionSchemaType,
+  id?:string
+) {
+  const parsedBody = CreateTransactionSchema.safeParse(form);
+  if (!parsedBody.success) {
+    throw new Error("Bad request: Invalid form data.");
+  }
+
+  const user = await currentUser();
+  if (!user) {
+    redirect("sign-in");
+  }
+
+  const { amount, category, date, description, type, account } = parsedBody.data;
+  console.log(id, amount)
+
+  const categoryRow = await prisma.category.findFirst({
+    where: {
+      userId: user.id,
+      name: category,
+    },
+  });
+
+  if (!categoryRow) {
+    throw new Error("Categoria no encontrada");
+  }
+
+  // Usamos una transacción para asegurarnos de que las operaciones estén sincronizadas
+  await prisma.$transaction([
+    // Actualizamos la transacción existente
+    prisma.transaction.update({
+      where: {
+        id,
+      },
+      data: {
+        userId: user.id,
+        amount,
+        date,
+        description: description || "",
+        type,
+        category: categoryRow.name,
+        categoryIcon: categoryRow.icon,
+        account,
+      },
+    }),
+
+    // Actualizamos el historial mensual
+    prisma.monthHistory.upsert({
+      where: {
+        day_month_year_userId: {
+          userId: user.id,
+          day: date.getUTCDate(),
+          month: date.getUTCMonth(),
+          year: date.getUTCFullYear(),
+        },
+      },
+      create: {
+        userId: user.id,
+        day: date.getUTCDate(),
+        month: date.getUTCMonth(),
+        year: date.getUTCFullYear(),
+        expense: type === "expense" ? amount : 0,
+        income: type === "income" ? amount : 0,
+      },
+      update: {
+        expense: {
+          increment: type === "expense" ? amount : 0,
+        },
+        income: {
+          increment: type === "income" ? amount : 0,
+        },
+      },
+    }),
+
+    // Actualizamos el historial anual
+    prisma.yearHistory.upsert({
+      where: {
+        month_year_userId: {
+          userId: user.id,
+          month: date.getUTCMonth(),
+          year: date.getUTCFullYear(),
+        },
+      },
+      create: {
+        userId: user.id,
+        month: date.getUTCMonth(),
+        year: date.getUTCFullYear(),
+        expense: type === "expense" ? amount : 0,
+        income: type === "income" ? amount : 0,
+      },
+      update: {
+        expense: {
+          increment: type === "expense" ? amount : 0,
+        },
+        income: {
+          increment: type === "income" ? amount : 0,
+        },
+      },
+    }),
+  ]);
+}
+
+export async function getTransactionById(id: string) {
+  try {
+    const transactionFound = await prisma.transaction.findUnique({
+      where: { id },
+    })
+    return { success: true, transactionFound }
+  } catch (error) {
+    console.error('Error fetching product:', error)
+    return { error: 'Internal Server Error' }
+  }
+}
 
 export async function DeleteTransaction(id:string){
   const user = await currentUser();

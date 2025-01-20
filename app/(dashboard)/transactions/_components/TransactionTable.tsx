@@ -29,7 +29,7 @@ import { DataTableFacetedFilter } from "@/components/datatable/FacetedFilter";
 import { DataTableViewOptions } from "@/components/datatable/ColumnToggle";
 import { Button } from "@/components/ui/button";
 import { download, generateCsv, mkConfig } from "export-to-csv";
-import { DownloadIcon, MoreHorizontal, TrashIcon, Upload } from "lucide-react";
+import { DownloadIcon, MoreHorizontal, Pencil, TrashIcon, Upload } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +41,7 @@ import {
 import DeleteTransactionDialog from "./DeleteTransactionDialog";
 import { handleImportXlsx } from "@/lib/helpers";
 import { WideDialogTable } from "./WideDialogTable";
+import { useRouter } from "next/navigation";
 
 interface Props {
   from: Date;
@@ -359,6 +360,7 @@ export default TransactionTable;
 
 function RowActions({ transaction }: { transaction: TransactionHistoryRow }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const router = useRouter();
 
   return (
     <>
@@ -385,6 +387,15 @@ function RowActions({ transaction }: { transaction: TransactionHistoryRow }) {
           >
             <TrashIcon className="h-4 w-4 text-muted-foreground" />
             Borrar
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="flex items-center gap-2"
+            onSelect={() => {
+              router.push(`/editTransaction?id=${transaction.id}`);
+            }}
+          >
+            <Pencil className="h-4 w-4 text-muted-foreground" />
+            Editar
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

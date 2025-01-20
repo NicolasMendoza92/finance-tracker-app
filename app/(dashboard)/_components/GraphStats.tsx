@@ -78,7 +78,6 @@ function IncomeChart({
     name: item.category,
     value: item._sum.amount || 0,
   }));
-  console.log(chartData);
 
   return (
     <Card className=" w-full">

@@ -28,7 +28,7 @@ export const WideDialogTable = ({
   open,
   onOpenChange,
 }: DialogProps) => {
-  console.log(transactions)
+
   const [isPending, startTransition] = useTransition();
 
   const onSubmit = async () => {
