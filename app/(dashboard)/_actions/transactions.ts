@@ -243,7 +243,7 @@ export async function DeleteTransaction(id:string){
       }
     }),
 
-    prisma.monthHistory.update({
+    prisma.monthHistory.delete({
       where:{
         day_month_year_userId:{
           userId: user.id,
@@ -252,21 +252,9 @@ export async function DeleteTransaction(id:string){
           year: transaction.date.getUTCFullYear(),
         },
       },
-      data:{
-        ...(transaction.type === "expense" && {
-          expense: {
-            decrement: transaction.amount,
-          }
-        }),
-        ...(transaction.type === "income" && {
-          income: {
-            decrement: transaction.amount,
-          }
-        }),
-      }
     }),
 
-    prisma.yearHistory.update({
+    prisma.yearHistory.delete({
       where:{
         month_year_userId:{
           userId: user.id,
@@ -274,18 +262,6 @@ export async function DeleteTransaction(id:string){
           year: transaction.date.getUTCFullYear(),
         },
       },
-      data:{
-        ...(transaction.type === "expense" && {
-          expense: {
-            decrement: transaction.amount,
-          }
-        }),
-        ...(transaction.type === "income" && {
-          income: {
-            decrement: transaction.amount,
-          }
-        }),
-      }
     })
   ])
 }

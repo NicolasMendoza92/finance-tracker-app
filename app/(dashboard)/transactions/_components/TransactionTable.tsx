@@ -229,6 +229,7 @@ function TransactionTable({ from, to }: Props) {
                 { label: "Jorge", value: "Jorge" },
                 { label: "Dante", value: "Dante" },
                 { label: "Juanito", value: "Juanito" },
+                { label: "Camiones y Galpon", value: "Camiones y Galpon" },
               ]}
             />
           )}

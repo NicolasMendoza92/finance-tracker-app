@@ -6,14 +6,16 @@ import StatsCards from "./StatsCards";
 import CategoriesStats from "./CategoriesStats";
 import GraphStats from "./GraphStats";
 import { DatePickerWithRange } from "./DatePickerWithRange";
-import { startOfMonth } from "date-fns";
+import { endOfMonth, startOfMonth } from "date-fns";
 
 
 function Overview({ userSettings }: { userSettings: UserSettings }) {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: startOfMonth(new Date()),
-    to: new Date(),
+    to: endOfMonth(new Date()),
   });
+
+  console.log(dateRange)
 
   return (
     <>

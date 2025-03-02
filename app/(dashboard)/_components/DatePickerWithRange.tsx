@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {  format, startOfMonth } from "date-fns";
+import {  endOfMonth, format, startOfMonth } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
@@ -30,7 +30,7 @@ export function DatePickerWithRange({
 
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
-    to: new Date(),
+    to: endOfMonth(new Date()),
   });
 
   const handleSelect = (newDate: DateRange | undefined) => {

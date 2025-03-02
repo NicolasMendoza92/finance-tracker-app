@@ -225,6 +225,7 @@ function CreateTransactionForm({ type }: Props) {
                   <SelectItem value="Dante">Dante</SelectItem>
                   <SelectItem value="Jorge">Jorge</SelectItem>
                   <SelectItem value="Juanito">Juanito</SelectItem>
+                  <SelectItem value="Camiones y Galpon">Camiones y Galpon</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>
