@@ -12,6 +12,7 @@ interface Props {
 }
 function DeleteTransactionDialog({open, setOpen, transactionId}: Props) {
     const queryClient = useQueryClient();
+    console.log("transactionId", transactionId);
 
     const deleteMutation = useMutation({
       mutationFn: DeleteTransaction,

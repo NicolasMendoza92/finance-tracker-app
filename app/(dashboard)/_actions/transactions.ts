@@ -219,51 +219,125 @@ export async function getTransactionById(id: string) {
   }
 }
 
-export async function DeleteTransaction(id:string){
+export async function DeleteTransaction(id: string) {
+  console.log("Deleting transaction with id:", id);
   const user = await currentUser();
   if (!user) {
-    redirect("sign-in");
+    redirect("/sign-in"); // Usa una ruta absoluta para el redirect
   }
 
   const transaction = await prisma.transaction.findUnique({
-    where:{
+    where: {
       userId: user.id,
       id,
-    }
+    },
   });
-  if( !transaction){
-    throw new Error("Bad requests")
+
+  if (!transaction) {
+    throw new Error("Bad request: Transaction not found.");
   }
 
-  await prisma.$transaction([
-    prisma.transaction.delete({
-      where:{
+  await prisma.$transaction(async (tx) => {
+    // 1. Eliminar la transacción
+    await tx.transaction.delete({
+      where: {
         id,
-        userId: user.id
+        userId: user.id,
+      },
+    });
+
+    // 2. Actualizar MonthHistory
+    const day = transaction.date.getUTCDate();
+    const month = transaction.date.getUTCMonth();
+    const year = transaction.date.getUTCFullYear();
+
+    const monthHistory = await tx.monthHistory.findUnique({
+      where: {
+        day_month_year_userId: {
+          userId: user.id,
+          day,
+          month,
+          year,
+        },
+      },
+    });
+
+    if (monthHistory) {
+      if (transaction.type === "income") {
+        await tx.monthHistory.update({
+          where: {
+            day_month_year_userId: {
+              userId: user.id,
+              day,
+              month,
+              year,
+            },
+          },
+          data: {
+            income: monthHistory.income - transaction.amount,
+          },
+        });
+      } else {
+        await tx.monthHistory.update({
+          where: {
+            day_month_year_userId: {
+              userId: user.id,
+              day,
+              month,
+              year,
+            },
+          },
+          data: {
+            expense: monthHistory.expense - transaction.amount,
+          },
+        });
       }
-    }),
+    }
+    // Si no existe monthHistory, significa que esta era la única transacción para ese día
+    // o hubo un problema previo. En este caso, no hay nada que actualizar/eliminar en monthHistory.
 
-    prisma.monthHistory.delete({
-      where:{
-        day_month_year_userId:{
+    // 3. Actualizar YearHistory
+    const yearHistory = await tx.yearHistory.findUnique({
+      where: {
+        month_year_userId: {
           userId: user.id,
-          day: transaction.date.getUTCDate(),
-          month: transaction.date.getUTCMonth(),
-          year: transaction.date.getUTCFullYear(),
+          month,
+          year,
         },
       },
-    }),
+    });
 
-    prisma.yearHistory.delete({
-      where:{
-        month_year_userId:{
-          userId: user.id,
-          month: transaction.date.getUTCMonth(),
-          year: transaction.date.getUTCFullYear(),
-        },
-      },
-    })
-  ])
+    if (yearHistory) {
+      if (transaction.type === "income") {
+        await tx.yearHistory.update({
+          where: {
+            month_year_userId: {
+              userId: user.id,
+              month,
+              year,
+            },
+          },
+          data: {
+            income: yearHistory.income - transaction.amount,
+          },
+        });
+      } else {
+        await tx.yearHistory.update({
+          where: {
+            month_year_userId: {
+              userId: user.id,
+              month,
+              year,
+            },
+          },
+          data: {
+            expense: yearHistory.expense - transaction.amount,
+          },
+        });
+      }
+    }
+    // Si no existe yearHistory, similar al monthHistory, no hay nada que actualizar/eliminar.
+  });
 }
 
 type BulkTransactionType = {
